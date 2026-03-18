@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Clicker</title>
+
+<style>
+body {
+  font-family: Arial;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #111;
+  color: white;
+  flex-direction: column;
+}
+
+/* Start / Stop button */
+button {
+  padding: 12px 25px;
+  font-size: 16px;
+  margin: 5px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#startBtn { background: #00c853; color: #fff; }
+#stopBtn { background: #d50000; color: #fff; }
+
+#timer {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+/* 🔥 Small cursor style floating click point */
+#floatingBtn {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  background: red;
+  border-radius: 50%;
+  top: 100px;
+  left: 100px;
+  z-index: 9999;
+  box-shadow: 0 0 10px red;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<button id="startBtn">Start</button>
+<button id="stopBtn">Stop</button>
+<div id="timer">Next click in: 20s</div>
+
+<!-- 🔴 Small click point -->
+<div id="floatingBtn"></div>
+
+<script>
+let interval = 20000;
+let countdown = interval / 1000;
+let autoClicker;
+let countdownTimer;
+let isRunning = false;
+
+const floatingBtn = document.getElementById('floatingBtn');
+const timerDisplay = document.getElementById('timer');
+
+// 🔥 Drag system
+floatingBtn.onmousedown = function(e) {
+  e.preventDefault();
+
+  let shiftX = e.clientX - floatingBtn.getBoundingClientRect().left;
+  let shiftY = e.clientY - floatingBtn.getBoundingClientRect().top;
+
+  function moveAt(pageX, pageY) {
+    floatingBtn.style.left = pageX - shiftX + 'px';
+    floatingBtn.style.top = pageY - shiftY + 'px';
+  }
+
+  function onMouseMove(e) {
+    moveAt(e.pageX, e.pageY);
+  }
+
+  document.addEventListener('mousemove', onMouseMove);
+
+  document.onmouseup = function() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.onmouseup = null;
+  };
+};
+
+floatingBtn.ondragstart = () => false;
+
+// 🔥 Auto click simulation
+function performClick() {
+  floatingBtn.style.background = "yellow";
+
+  setTimeout(() => {
+    floatingBtn.style.background = "red";
+  }, 200);
+}
+
+// ⏱️ Countdown
+function startCountdown() {
+  countdown = interval / 1000;
+  timerDisplay.textContent = `Next click in: ${countdown}s`;
+
+  countdownTimer = setInterval(() => {
+    countdown--;
+    if (countdown < 0) countdown = 0;
+    timerDisplay.textContent = `Next click in: ${countdown}s`;
+  }, 1000);
+}
+
+// ▶️ Start
+document.getElementById('startBtn').onclick = () => {
+  if (isRunning) return;
+  isRunning = true;
+
+  startCountdown();
+
+  autoClicker = setInterval(() => {
+    performClick();
+    clearInterval(countdownTimer);
+    startCountdown();
+  }, interval);
+};
+
+// ⛔ Stop
+document.getElementById('stopBtn').onclick = () => {
+  isRunning = false;
+  clearInterval(autoClicker);
+  clearInterval(countdownTimer);
+  timerDisplay.textContent = "Stopped";
+};
+</script>
+
+</body>
+</html>
